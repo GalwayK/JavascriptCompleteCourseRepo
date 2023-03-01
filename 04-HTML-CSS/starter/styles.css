@@ -1,0 +1,48 @@
+*
+{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.italic 
+{
+    font-style: italic;
+}
+body 
+{
+    margin: 0px;
+    height: 100vh;
+    text-align: center;
+    font-family: verdana;
+}
+body
+{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+header, footer 
+{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: deepskyblue;
+    width: 100%;
+    color: white;
+    min-height: 10vh;
+}
+form, p
+{
+    padding: 8px;
+}
+main 
+{
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
