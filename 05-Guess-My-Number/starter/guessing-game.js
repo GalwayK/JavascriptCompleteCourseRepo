@@ -16,11 +16,20 @@ function setStartState()
 
 function setFinishState()
 {
-    console.log("Game is finished.")
+    console.log("Game is finished.");
+    pageBody.style = ("background-color: green;");
     labelHighScore.textContent = highScore;
-    pageBody.style = ("background-color: green;")
-    buttonGuess.disable = true;
+    buttonGuess.disabled = true;
     buttonGuess.textContent = "Congrats!";
+}
+
+function setLoseState()
+{
+    console.log("Game has been lost.");
+    pageBody.style = ("background-color: red;");
+    labelMessage.textContent = "You lose!";
+    buttonGuess.disabled = true;
+    buttonGuess.textContent = "Defeat!";
 }
 
 const pageBody = document.querySelector("body");
@@ -55,6 +64,7 @@ buttonGuess.addEventListener("click", () =>
 {
     guess = inputGuess.value;
     guess = parseInt(guess);
+
     if (guess != 0 && !guess)
     {
         labelMessage.textContent = "Enter a number!";
@@ -80,6 +90,11 @@ buttonGuess.addEventListener("click", () =>
             highScore = currentScore;
         }
         setFinishState();
+    }
+
+    if (currentScore === 0)
+    {
+        setLoseState();
     }
 });
 
