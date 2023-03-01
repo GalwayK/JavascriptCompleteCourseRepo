@@ -3,7 +3,7 @@
 function setStartState()
 {
     console.log("Initializing game.");
-    pageBody.style = "background-color: #222;"
+    pageBody.style.backgroundColor = "#222";
     buttonGuess.textContent = "Check!";
     buttonGuess.disabled = false;
     currentScore = 20;
@@ -11,25 +11,30 @@ function setStartState()
     labelMessage.textContent = "Start Guessing...";
     inputGuess.value = "";
     answer = parseInt(Math.random() * MAX + MIN);
-    console.log(answer);
+    labelNumber.textContent = "?";
+    labelNumber.style.width = "15rem";
 }
 
 function setFinishState()
 {
     console.log("Game is finished.");
-    pageBody.style = ("background-color: green;");
+    pageBody.style.backgroundColor = "green";
     labelHighScore.textContent = highScore;
     buttonGuess.disabled = true;
     buttonGuess.textContent = "Congrats!";
+    labelNumber.textContent = answer;
+    labelNumber.style.width = "30rem";
 }
 
 function setLoseState()
 {
     console.log("Game has been lost.");
-    pageBody.style = ("background-color: red;");
+    pageBody.style.backgroundColor = "red";
     labelMessage.textContent = "You lose!";
     buttonGuess.disabled = true;
     buttonGuess.textContent = "Defeat!";
+    labelNumber.textContent = "!";
+    labelNumber.style.width = "30rem";
 }
 
 const pageBody = document.querySelector("body");
@@ -43,6 +48,7 @@ const labelBetween = document.querySelector(".between");
 const labelCurrentScore = document.querySelector(".score");
 const labelHighScore = document.querySelector(".highscore");
 const labelMessage = document.querySelector(".message");
+const labelNumber = document.querySelector(".number");
 
 const MIN = 0;
 const MAX = 20;
