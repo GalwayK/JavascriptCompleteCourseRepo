@@ -74,19 +74,20 @@ buttonGuess.addEventListener("click", () =>
     if (guess != 0 && !guess)
     {
         labelMessage.textContent = "Enter a number!";
-        return null;
     }
-    if (guess > answer)
+    else if (guess !== answer) 
     {
-        labelMessage.textContent = "Too high!"
         currentScore -= 1;
         labelCurrentScore.textContent = currentScore;
-    }
-    else if (guess < answer)
-    {
-        labelMessage.textContent = "Too low!";
-        currentScore -= 1;
-        labelCurrentScore.textContent = currentScore;
+        if (currentScore === 0)
+        {
+            setLoseState();
+        }
+        else 
+        {
+            let output = guess > answer ? "Too high!" : "Too low!";
+            labelMessage.textContent = output;
+        }
     }
     else if (guess === answer)
     {
@@ -94,13 +95,8 @@ buttonGuess.addEventListener("click", () =>
         if (currentScore > highScore)
         {
             highScore = currentScore;
-        }
+        } 
         setFinishState();
-    }
-
-    if (currentScore === 0)
-    {
-        setLoseState();
     }
 });
 
