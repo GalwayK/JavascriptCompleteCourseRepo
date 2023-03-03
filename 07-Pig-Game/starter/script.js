@@ -3,8 +3,13 @@
 const rollDice = () => 
 {
     numberRolled = parseInt(Math.random() * 6 + 1);
+    
     changeImage(numberRolled);
+    updateScores(numberRolled);
+}
 
+const updateScores = (numberRolled) =>
+{
     if (numberRolled === 1)
     {
         players[currentPlayer]["scoreNumber"] = 0;
@@ -17,6 +22,7 @@ const rollDice = () =>
     else 
     {
         players[currentPlayer]["scoreNumber"] += numberRolled;
+
         players[currentPlayer]["scoreArea"].textContent = 
             players[currentPlayer]["scoreNumber"];
 
@@ -36,6 +42,17 @@ const changeImage = function(numberRolled)
 
 const changePlayer = () =>
 {
+    updateDisplay();
+
+    players[currentPlayer]["playArea"].classList.remove("player--active")
+
+    currentPlayer = currentPlayer === 1 ? 0 : 1;
+
+    players[currentPlayer]["playArea"].classList.add("player--active");
+}
+
+const updateDisplay = () => 
+{
     players[currentPlayer]["scoreTotal"] += 
         players[currentPlayer]["scoreNumber"];
 
@@ -44,12 +61,6 @@ const changePlayer = () =>
 
     players[currentPlayer]["scoreNumber"] = 0;
     players[currentPlayer]["scoreArea"].textContent = 0;
-
-    players[currentPlayer]["playArea"].classList.remove("player--active")
-
-    currentPlayer = currentPlayer === 1 ? 0 : 1;
-
-    players[currentPlayer]["playArea"].classList.add("player--active");
 }
 
 const endGame = () =>
