@@ -3,7 +3,7 @@
 const rollDice = () => 
 {
     numberRolled = parseInt(Math.random() * 6 + 1);
-    
+
     changeImage(numberRolled);
     updateScores(numberRolled);
 }
@@ -36,6 +36,7 @@ const updateScores = (numberRolled) =>
 
 const changeImage = function(numberRolled)
 {
+    imageDice.classList.remove("hidden");
     const imageFile = `dice-${numberRolled}.png`;
     imageDice.src = imageFile;
 }
@@ -75,6 +76,7 @@ const resetGame = () =>
 
 const setupGame = () => 
 {
+    imageDice.classList.add("hidden");
     for (let i = 0; i < 2; i++)
     {
         players[i]["scoreNumber"] = 0;
