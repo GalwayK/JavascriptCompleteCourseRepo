@@ -1,5 +1,5 @@
 "use strict";
-// In the best, Javascript had few built in data structures. 
+// In the past, Javascript had few built in data structures. 
 // ES6 two more data structures were introduced: sets and maps. 
 
 // A set is a collection of unique values. A set can never have duplicates. 
@@ -53,7 +53,7 @@ for (const letter of letterSet)
 
 // console.log(`Your name has ${nameLength} unique letters.`);
 
-// Sets are not intended to replace array. If you need to store data in an order
+// Sets are not intended to replace arrays. If you need to store ordered data 
 // and don't care about duplicates, then just use an array. They are important 
 // to know, but you don't need to use them for everything. 
 

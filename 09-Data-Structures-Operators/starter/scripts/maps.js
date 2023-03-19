@@ -1,5 +1,6 @@
 // Keys are similar to objects, in that they can store key value pairs. 
-// Unlike objects, a map can have any datatype as the key. 
+// Unlike objects, a map can have any datatype as the key. However, a map 
+// cannot contain methods only functions which do not have the this keyword. 
 "use strict";
 
 const restaurant = 
@@ -64,7 +65,7 @@ ${mainTopping}${outputString}`;
 // restaurantMap.set(1, "Oakville, Ontario");
 // restaurantMap.set(2, "Mississauga, Ontario");
 
-// // The set method returns the updats map, which lets us chain together set 
+// // The set method returns the updated map, which lets us chain together set 
 // // methods. 
 
 // restaurantMap.set("open", 8);
