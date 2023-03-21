@@ -81,20 +81,34 @@ console.log("Welcome to Bankist, a minimalist Banking application!");
 // also don't want to use global variables, we want to pass the data we need 
 // into a variable, even if the variable itself is globally accessible. 
 
-let currentAccount;
+let currentAccount = null;
+let beginSortEvent;
 
-const displayMovements = function(movementsArray)
+const displayMovements = function(movementsArray, sorted=false, sortString)
 {
     // Before we can add elements, we must set the current element to empty.
     containerMovements.innerHTML = '';
 
-    // We are iterating through the movementsArrat and then creating the 
+    const sortMovementsArrayFunction = sortString === "ascend" ? 
+        (currentMovementNumber, nextMovementNumber) => 
+            nextMovementNumber - currentMovementNumber :
+        (currentMovementNumber, nextMovementNumber) => 
+            currentMovementNumber - nextMovementNumber;
+
+    const displayArray = 
+    sorted ? movementsArray.slice(0).sort(sortMovementsArrayFunction) : 
+        [...movementsArray];
+
+    displayArray.sort(sortMovementsArrayFunction);
+    
+
+    // We are iterating through the movementsArray and then creating the 
     // div elements to add each of them to the DOM with data created for 
     // each movement. We create a template String which contains the movement 
     // information. Then we add them to the movements div with the 
     // .insertAdjacentElements method with the afterbegin position option 
     // to put the templates after the end of the element's original children. 
-    movementsArray.forEach((movementNumber, index) => 
+    displayArray.forEach((movementNumber, index) => 
     {  
         let movementTypeString = movementNumber > 0 ? "deposit" : "withdrawal";
         const htmlTemplateString = `
@@ -114,23 +128,37 @@ const displayMovements = function(movementsArray)
 
 // COMPUTING USERNAMES 
 
-const computeUsernameFunction = function(ownerNameString)
-{
-    ownerNameString = ownerNameString.toLowerCase();
-    const wordArray = ownerNameString.split(" ");
+// const computeUsernameFunction = function(ownerNameString)
+// {
+//     ownerNameString = ownerNameString.toLowerCase();
+//     const wordArray = ownerNameString.split(" ");
 
-    // Use Map method to return array of lower case initials.
-    const wordLowerCaseArray = wordArray.map(word => word[0]);
-    return wordLowerCaseArray.join("");
+//     // Use Map method to return array of lower case initials.
+//     const wordLowerCaseArray = wordArray.map(word => word[0]);
+//     return wordLowerCaseArray.join("");
+// };
+
+// const addUsernameToAccount = function(account)
+// {
+//     const usernameString = computeUsernameFunction(account.owner);
+//     account.username = usernameString;
+// };
+
+// accounts.forEach(addUsernameToAccount);
+
+const mapOwnerToUsername = function(accountObject, indexNumber)
+{
+    const ownerString = accountObject.owner.toLowerCase();
+    const wordArray = ownerString.split(" ");
+    const mapWordToFirstLetter = (word) => word[0];
+    const firstLetterArray = wordArray.map(mapWordToFirstLetter);
+    const usernameString = firstLetterArray.join("");
+    accountObject["username"] = usernameString;
+    return usernameString;
 };
 
-const addUsernameToAccount = function(account)
-{
-    const usernameString = computeUsernameFunction(account.owner);
-    account.username = usernameString;
-};
-
-accounts.forEach(addUsernameToAccount);
+const usernameArray = accounts.map(mapOwnerToUsername);
+console.log(usernameArray);
 
 // CALCULATE ACCOUNT BALANCE 
 
@@ -189,9 +217,9 @@ const calculateAccountSummaries = function(account)
 
 // IMPLEMENT LOGIN PAGE
 
-const loginUser = function(account)
+const generateFields = function()
 {
-    currentAccount = account;
+    
     displayMovements(currentAccount.movements);
     generateAccountBalance(currentAccount);
     labelBalance.textContent = `${currentAccount.balance} €`;
@@ -205,9 +233,39 @@ const loginUser = function(account)
     inputLoginUsername.blur();
     inputLoginPin.blur();
 
+    const generateSortEventFunction = function()
+    {
+        // Closure will preserve this variable.
+        let sortString = "ascend";
+        return function(event)
+        {
+            event.preventDefault();
+            displayMovements(currentAccount.movements, true, sortString);
+            sortString = sortString === "ascend" ? "descend" : "ascend";
+        }
+    }
+
+    beginSortEvent = generateSortEventFunction();
+
+    btnSort.addEventListener("click", beginSortEvent);
+
     labelWelcome.textContent = `Welcome ${currentAccount.owner.split(" ")[0]}!`;
     containerApp.style["opacity"] = 1;
 };
+
+const logoutCurrentUser = function()
+{
+    currentAccount = null;
+    containerApp.style["opacity"] = 0;
+    containerMovements.innerHTML = "";
+    labelWelcome.textContent = "";
+    labelBalance.textContent = "";
+    labelSumIn.textContent = "";
+    labelSumInterest.textContent = "";
+    labelSumInterest.textContent = "";
+};
+
+
 
 const signinUser = function(event)
 {
@@ -217,14 +275,17 @@ const signinUser = function(event)
     // Two conditions to check. 
     // 1. Find user for username. 
     // 2. Confirm password for username matches login password. 
-    const validateUsername = (account) => account.username === usernameString;
 
-    const accountChecked = accounts.find(validateUsername);
+    const findAccountByUsername = 
+        (account) => account.username === usernameString;
+
+    const accountChecked = accounts.find(findAccountByUsername);
 
     if (passwordString === accountChecked?.pin)
     {
         console.log("Logging in.");
-        loginUser(accountChecked);
+        currentAccount = accountChecked;
+        generateFields();
     }
     else 
     {
@@ -237,6 +298,127 @@ const signinUser = function(event)
 // the event.preventDefault() method. This stops the page from reloading.
 btnLogin.addEventListener("click", signinUser);
 accounts.forEach((account) => console.log(account));
+
+// IMPLEMENTING TRANSFERS
+
+const transferFunds = function(transferAccountString, amountNumber)
+{
+    const findAccountByUsername = 
+        (account) => account.username === transferAccountString;
+
+    const transferAccount = accounts.find(findAccountByUsername);
+    console.log(transferAccount);
+
+    if (amountNumber > 0)
+    {
+        this.movements.push(0 - amountNumber);
+        transferAccount.movements.push(amountNumber);
+        generateFields();
+    }
+};
+
+const beginTransferEvent = function(event)
+{
+    event.preventDefault();
+    const usernameString = inputTransferTo.value;
+    const amountNumber = Number(inputTransferAmount.value);
+    
+    inputTransferTo.value = inputTransferAmount.value = "";
+
+    inputTransferTo.blur();
+    inputTransferAmount.blur();
+
+    if (!usernameString || usernameString === currentAccount.username || 
+        !amountNumber || amountNumber > currentAccount.balance)
+    {
+        console.log("Error, invalid transfer.")
+    }
+    else 
+    { 
+        transferFunds.call(currentAccount, usernameString, amountNumber);
+    }
+};
+
+btnTransfer.addEventListener("click", beginTransferEvent)
+
+
+// CLOSING ACCOUNTS 
+const closeAccountEvent = function(event)
+{
+    event.preventDefault();
+
+    const inputUsernameString = inputCloseUsername.value;
+    const inputPasswordString = inputClosePin.value;
+
+    const findAccountIndex = 
+        (account) => account === currentAccount 
+            && account.username === inputUsernameString 
+            && account.pin === inputPasswordString;
+
+    const accountIndex = accounts.findIndex(findAccountIndex);
+
+    if (accountIndex > -1)
+    // Use findIndex() to find the index of the account.
+    {
+        accounts.splice(accountIndex, 1);
+        console.log(accounts);
+        logoutCurrentUser();
+    }  
+    else 
+    {
+        console.log("Cannot delete account.");
+    }
+
+    inputCloseUsername.value = inputClosePin.value = "";
+    inputClosePin.blur();
+    inputCloseUsername.blur();
+};
+
+// Find the user with the username. 
+// Confirm that user's Pin matches entered pin. 
+// Delete from array where account index matches.
+btnClose.addEventListener("click", closeAccountEvent);
+
+
+// IMPLEMENTING LOAN WITH SOME 
+
+function beginLoanEvent(event)
+{
+    event.preventDefault();
+    const requestedLoanNumber = Number(inputLoanAmount.value);
+    if (requestedLoanNumber > 0)
+    {
+        const anyDepositGreaterThanLoan = (movementNumber) => 
+            movementNumber >= requestedLoanNumber / 10;
+        
+        // We use the some method to find out if the user has any movements 
+        // greater or equal to 10% of the requested loan. 
+        const hasHighDeposit = 
+            currentAccount.movements.some(anyDepositGreaterThanLoan);
+        
+        if (hasHighDeposit)
+        {
+            currentAccount.movements.push(requestedLoanNumber);
+            generateFields();
+        }
+        else 
+        {
+            console.log("Error: Insufficient funds.");
+        }
+    }
+    else 
+    {
+        console.log("Error requesting loan.");
+    }
+    inputLoanAmount.value = "";
+    inputLoanAmount.blur();
+}
+
+btnLoan.addEventListener("click", beginLoanEvent);
+
+// SORTING MOVEMENTS
+
+// This is the most cursed solution.
 
 // DATA TRANSFORMATIONS: MAP, FILTER, REDUCE 
 
@@ -268,6 +450,7 @@ const euroToUsdConversion = 1.1;
 
 // This method is called for all elements of the original array. 
 // // It returns an array with each entry being a processed element.
+
 // const convertEuroToUsd = function(euroNumber, indexNumber, originalArray) 
 // {
 //     // console.log(indexNumber);
@@ -369,6 +552,7 @@ const euroToUsdConversion = 1.1;
 // to keep track of the accumulation. In the reduce method, we do not, and 
 // this helps keep our code organized, refined, and easy to read. 
 // let accountBalance = 0;
+
 // for (const movementNumber of movementsEurosArray)
 // {
 //     accountBalance += movementNumber;
@@ -399,6 +583,7 @@ const euroToUsdConversion = 1.1;
 // }
 
 // accounts.forEach(displayMaximumValue);
+
 
 // CHAINING METHODS 
 
@@ -448,8 +633,216 @@ const euroToUsdConversion = 1.1;
 //         return account.username === username;
 //     }));
 
-// // The find method is a great way to search through a list of objects which are 
-// // all going to have similar or identical structures. 
+// The find method is a great way to search through a list of objects which are 
+// all going to have similar or identical structures. 
 
 // console.log(jdObject);
 
+// THE FINDINDEX METHOD 
+
+// The findIndex() method is a cousin of the find() method. Howver, the 
+// the findIndex() method returns the index of an element, instead of the 
+// element itself. Like the find() method, it looks for only one element. 
+
+// In our application, closing an account just means to delete that account 
+// from the accounts array. We can find the index of an account in the array 
+// with the findIndex method, which returns the index of the first element 
+// that matches. 
+
+// The findIndex method is similar to the indexOf method, however it allows for 
+// more complex behaviours and logic. The indexOf is better when we only want 
+// to find the index of a specific account, while findIndex is better if we 
+// have more complicated logic we want to process. 
+
+// Just like the find method, the findIndex method also has access to the index 
+// and the entirety of the array being processed. That said, these values are 
+// almost never useful like they are with other methods. The find and findIndex 
+// methods are also quite new, and will not work with older browsers. 
+
+// THE SOME AND EVERY METHODS 
+
+// The includes methods return a boolean value if it includes the argument. 
+// If we want to test for a condition instead of strict equality, we can use 
+// the some method. This allows us to test for a greater number of conditions. 
+// If any element returns a true value, the method will return with true.
+// console.log(movementsEurosArray.includes(-130));
+
+// We can test if any of the movements in our array are positive with 
+// a method such as the below: 
+// const checkPositiveMovement = (movementNumber, indexNumber, movementsArray) =>
+//     movementNumber > 0;
+
+// const checkHighMovements = (movementNumber, indexNumber, movementsArray) => 
+//     movementNumber > 5000;
+
+// // The some method also gains access to the indexNumber and original array. 
+// console.log(movementsEurosArray.some(anyPositiveMovement));
+
+// console.log(`There is at least one movement greater than 5000: `
+// + `${movementsEurosArray.some(anyHighMovements)}.`);
+
+// The every method is similar to the some method, except that it will only 
+// returnt true if every element matches the boolean statement in the function.
+
+// accounts.forEach((account) => 
+// {
+//     console.log("All positive: ", account.movements.every(checkPositiveMovement));
+//     console.log("All high: ", account.movements.every(checkHighMovements));
+// });
+
+// console.log(account4.movements.every(checkPositiveMovement));
+
+// As I have done in all of this code, we do not want to repeat ourselves. We 
+// should create our functions separately and then pass them as arguments into 
+// our methods whenever possible, which allows us to avoid code repetition. 
+
+
+// THE FLAT AND FLATMAP METHODS 
+
+// In this example we have an array with a number of subarrays as well as some 
+// other elements. If we want to take all of the elements from the subarrays 
+// and add them to the topArray, we can use the flat method. The flat and 
+// flatmap methods are relatively new, and were introduced in 2019. They will 
+// not work with older browsers. 
+
+// const topArray = [[1, 2, 3], [4, 5, 6], 7, 8, 9];
+// console.log(topArray.flat());
+// // console.log(topArray.flatMap());
+
+// // The flat method only goes one level deep when flattening arrays. It will not 
+// // flatten any subArrays which are two levels deep. We can fix this with the 
+// // depth argument, which is the first argument for the flat() method. 
+// const deepArray = [[[1, 2], 3], [4, [5, 6]], 7, 8];
+// console.log(deepArray.flat(2));
+
+// Problem: calculate all of the movements for all of the accounts. 
+// To solve this, we first map all of the movements arrays into a single array. 
+// We then flatten this array with the flat method, and then use a reduce method 
+// in order to calculate the sum of all of their values. It is a common 
+// operation to use a map method following immediately by a flat method. 
+
+// const makeMovementsArray = function(account)
+// {
+//     return account.movements;
+// };
+
+// const calculateMovementsSum = (movementTotalNumber, movementNumber) =>
+//     movementTotalNumber += movementNumber;
+
+// let movementsTotalNumber = 
+//     accounts.map(makeMovementsArray).flat(1).reduce(calculateMovementsSum, 0);
+// console.log(movementsTotalNumber);
+
+// // Because map and flat are so often used together, there was a new method 
+// // created all flatmap, which does both operations at a single time. The 
+// // flatMap method receives the same argument as the map method, however it 
+// // only ever goes one level deep. If we want to flatten more levels deeper, 
+// // we must use the flat method with the depth argument. 
+
+// movementsTotalNumber = 
+//     accounts.flatMap(makeMovementsArray).reduce(calculateMovementsSum, 0);
+// console.log(movementsTotalNumber);
+
+// SORTING ARRAYS
+
+// Sorting is a complicated subject for computer science. 
+
+const ownersArray = ["Jonas", "Zach", "Adam", "Martha"];
+const numbersArray = [9, 8, 7, 6, 5, 4, 3, 10];
+console.log(ownersArray.sort());
+console.log(numbersArray.sort());
+
+// JavaScript's sort method will sort values alphabetically, not numerically.
+// This sort method also mutates the original array, we requires us be careful 
+// when implementing this method. We can pass a callback method into the sort 
+// method in order to customize the sort method for our own purposes. 
+
+// console.log(movementsEurosArray);
+// console.log(movementsEurosArray.sort());
+
+// A callback function passed into the sort method will receive as arguments 
+// two values: the current value, and the immediate next value. For the 
+// callback function, if we return less than 0, then value a will be sorted as 
+// less than value b. If we return greater than 0, value b will be sorted 
+// before value a. If we want to reverse the order, we just reverse the logic.
+// Returning 1 switches the order, returning -1 retains the order. 
+
+// numbersArray.sort((currentValue, nextValue) => 
+// {
+//     return currentValue - nextValue;
+//     // return currentValue > nextValue ? 1 : -1;
+// });
+
+// console.log(numbersArray);
+
+// // There is little point in trying to sort an array of mixed value types. 
+
+// // We have finished the bankist application at this point. 
+
+// const retrieveMovementNumbersFromUI = (movementDiv) => 
+//     Number(movementDiv.textContent.slice(0, -1).replace(" ", ""));
+
+// const labelBalanceClickFunction = function(event)
+// {
+//     event.preventDefault();
+//     const movementsNode = document.querySelectorAll(".movements__value");
+
+//     const movementsArray = 
+//         Array.from(movementsNode, retrieveMovementNumbersFromUI);
+
+//     console.log(movementsArray);
+// };
+
+// labelBalance.addEventListener("click", labelBalanceClickFunction);
+
+// 1. How many deposits with at least 1000 dollars? 
+
+// const countHighDeposit = function(depositNumber, movementNumber)
+// {
+//     return movementNumber >= 1000 ? ++depositNumber : depositNumber;
+// };
+
+// const totalMovements = accounts.flatMap((account) => 
+// {   
+//     console.log(account.movements)
+//     return account.movements;
+// }).reduce(countHighDeposit, 0);
+
+// console.log(totalMovements)
+
+// 2. Create object with sum of deposits and withdrawals. 
+
+const incrementMovementsObject = ((movementsObject, nextMovement) =>
+{
+    if (nextMovement > 0)
+    {
+        movementsObject["deposits"] += nextMovement;
+    }
+    else 
+    {
+        movementsObject["withdrawals"] += Math.abs(nextMovement);
+    }
+    return movementsObject;
+});
+
+const movementsObject = accounts.flatMap((account) => 
+{
+    return account.movements
+}).reduce(incrementMovementsObject, {"deposits": 0, "withdrawals": 0});
+
+console.log(movementsObject);
+
+// 3. Create a Title Method 
+
+function generateToTitleFunction()
+{
+    const expectations = ["a", "an", "the", "but", "or", "on", "in", "with"];
+    return (wordString) => expectations.includes(wordString) ? wordString : 
+            wordString[0].toUpperCase().concat(wordString.slice(1));
+}
+
+let titleString = "like a dragon isshin";
+
+titleString = titleString.toLowerCase().split(" ").map(generateToTitleFunction()).join(" ");
+
+console.log(titleString);
