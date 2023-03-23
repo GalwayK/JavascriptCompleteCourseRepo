@@ -150,8 +150,10 @@ const mapOwnerToUsername = function(accountObject, indexNumber)
 {
     const ownerString = accountObject.owner.toLowerCase();
     const wordArray = ownerString.split(" ");
+
     const mapWordToFirstLetter = (word) => word[0];
     const firstLetterArray = wordArray.map(mapWordToFirstLetter);
+
     const usernameString = firstLetterArray.join("");
     accountObject["username"] = usernameString;
     return usernameString;
@@ -533,7 +535,7 @@ const euroToUsdConversion = 1.1;
 // The reduce method boils down (reduces) an array to a single value. 
 
 // const calculateTotalBalance = 
-//     (totalBalance, movementNumber) => totalBalance + movementNumber;
+//     (totalBalance, movementNumber) => totalBalance += movementNumber;
     
 // // The second argument for the Reduce method is the default value of the 
 // // accumulator. 
