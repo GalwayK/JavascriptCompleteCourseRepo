@@ -42,21 +42,14 @@ const account2 = {
   locale: 'en-US',
 };
 
-const account3 = {
-  owner: 'Steven Thomas Williams',
-  movements: [200, -200, 340, -300, -20, 50, 400, -460],
-  interestRate: 0.7,
-  pin: 3333,
-};
 
-const account4 = {
-  owner: 'Sarah Smith',
-  movements: [430, 1000, 700, 50, 90],
-  interestRate: 1,
-  pin: 4444,
-};
+const arrayDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", 
+    "Friday", "Saturday"];
 
-const accounts = [account1, account2, account3, account4];
+const arrayMonths = ['January', "February", "March", "April", "May", "June", 
+    "July", "August", "September", "October", "November", "December"];
+
+const accounts = [account1, account2];
 
 // Elements
 const body = document.querySelector("body");
@@ -105,6 +98,10 @@ const displayMovements = function(movementsArray, sorted=false, sortString)
     sorted ? movementsArray.slice(0).sort(sortMovementsArrayFunction) : 
         [...movementsArray];
     
+    currentAccount.arrayMovementTimes = null;
+    currentAccount.arrayMovementTimes = currentAccount.movementDateArray
+        .map(funcGenerateAddTimestampFunction());
+
     displayArray.forEach((movementNumber, index) => 
     {  
         let movementTypeString = movementNumber > 0 ? "deposit" : "withdrawal";
@@ -112,7 +109,7 @@ const displayMovements = function(movementsArray, sorted=false, sortString)
         <div class="movements__row">
             <div class="movements__type movements__type--${movementTypeString}"`
             + `>${index + 1} ${movementTypeString}</div>
-            <!-- <div class="movements__date">3 days ago</div> -->
+            <div class="movements__date">${currentAccount.arrayMovementTimes[index]} days ago.</div> 
             <div class="movements__value">${movementNumber.toFixed(2)}€</div>
         </div>
         `;
@@ -122,8 +119,6 @@ const displayMovements = function(movementsArray, sorted=false, sortString)
         // inserting HTML, though it is extremely easy and effective.
     });
 };
-
-
 
 const mapOwnerToUsername = function(accountObject, indexNumber)
 {
@@ -214,6 +209,15 @@ const generateFields = function()
     inputLoginUsername.blur();
     inputLoginPin.blur();
 
+    let dateCurrent = new Date();
+    let dayCurrent = dateCurrent.getDay();
+    let monthCurrent = dateCurrent.getMonth();
+    let yearCurrent = dateCurrent.getFullYear();
+    let monthdateCurrent = dateCurrent.getDate();
+
+    labelDate.textContent = `${arrayDays[dayCurrent]} `
+     + `${arrayMonths[monthCurrent]} ${monthdateCurrent}, ${yearCurrent}`;
+
     const generateSortEventFunction = function()
     {
         let sortString = "ascend";
@@ -284,7 +288,9 @@ const transferFunds = function(transferAccountString, amountNumber)
     if (amountNumber > 0 && transferAccount)
     {
         this.movements.push(0 - amountNumber);
+        this.movementDateArray.push(new Date());
         transferAccount.movements.push(amountNumber);
+        transferAccount.movementDateArray.push(new Date());
         generateFields();
     }
     else 
@@ -352,7 +358,7 @@ const closeAccountEvent = function(event)
 
 btnClose.addEventListener("click", closeAccountEvent);
 
-// IMPLEMENTING LOAN WITH SOME 
+// IMPLEMENTING LOAN 
 
 function beginLoanEvent(event)
 {
@@ -369,6 +375,7 @@ function beginLoanEvent(event)
         if (hasHighDeposit)
         {
             currentAccount.movements.push(requestedLoanNumber);
+            currentAccount.movementDateArray.push(new Date());
             generateFields();
         }
         else 
@@ -524,3 +531,82 @@ console.log(+ (2.345678).toFixed(3));
 // methods called on a number by converting the primitive value into a 
 // Number object, running the method, and then behind the scenes, converting 
 // the object back into a primitive value. 
+
+// THE REMAINDER OPERATOR 
+
+// The remainder operator returns the remainder after division. It is also 
+// known as the modulus operator. 
+
+// let mathOutputNum;
+
+// mathOutputNum = 5 % 2;
+
+// console.log(mathOutputNum);
+
+const colorOddMovementsFunc = function(event)
+{
+    let movementsRowNodeList = document.querySelectorAll(".movements__row");
+    let movementsRowArray = [...movementsRowNodeList];
+    console.log(movementsRowArray);
+
+    movementsRowArray.forEach((movementRow, indexNum) => 
+    {
+        console.log(movementRow);
+        if ((indexNum + 1) % 2 === 0)
+        {
+            movementRow.style["backgroundColor"] = "orangered";
+        }
+        if ((indexNum + 1) % 3 === 0)
+        {
+            movementRow.style["backgroundColor"] = "lightgreen";
+        }
+    });
+};
+
+btnLogin.addEventListener("click", colorOddMovementsFunc);
+
+// Overall, the remainder is a great, simple choice whenever we need to do 
+// something on every nth number of iterations. In this case, for every three 
+// or two rows, we want to change the background color of an element. 
+
+// CREATING DATES FOR ACCOUNTS
+
+const funcParseDateStringIntoDateObjectForAccounts = 
+    function(accountObj, indexNum)
+{
+    const funcParseStringIntoDate = (strDate) =>
+        new Date(strDate);
+
+    accountObj["movementDateArray"] = 
+        accountObj.movementsDates.map(funcParseStringIntoDate);
+    // console.log(accountObj);  
+};
+
+accounts.forEach(funcParseDateStringIntoDateObjectForAccounts);
+
+// IMPLEMENTING ACCURATE TIMESTAMPS 
+
+function funcGenerateAddTimestampFunction()
+{
+    return function(dateValue, indexNum, arrayDates)
+    {
+        let timeMovement = dateValue.getTime();
+        let currentTime = Date.now();
+        let timeDifference = currentTime - timeMovement;
+        return Math.floor(timeDifference / 1000 / 60 / 60 / 24);
+    }
+};
+
+console.log(funcGenerateAddTimestampFunction());
+
+accounts.forEach((accountObj, indexNum) => 
+{
+    console.log(typeof accountObj.movementDateArray);
+    let arrayMovementTimeDifferences = accountObj.movementDateArray
+        .map(funcGenerateAddTimestampFunction());
+
+    accountObj.arrayMovementTimes = arrayMovementTimeDifferences;
+    console.log(accountObj);
+});
+
+
