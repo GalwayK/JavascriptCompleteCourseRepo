@@ -42,6 +42,7 @@ const account2 = {
   locale: 'en-US',
 };
 
+const numLogoutTime = 300_000;
 
 const arrayDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", 
     "Friday", "Saturday"];
@@ -50,6 +51,9 @@ const arrayMonths = ['January', "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"];
 
 const accounts = [account1, account2];
+
+let timeoutLogout;
+let intervalTimer;
 
 // Elements
 const body = document.querySelector("body");
@@ -102,15 +106,40 @@ const displayMovements = function(movementsArray, sorted=false, sortString)
     currentAccount.arrayMovementTimes = currentAccount.movementDateArray
         .map(funcGenerateAddTimestampFunction());
 
+    let currencyOptions = 
+    {
+        "style": "currency", 
+        "currency": currentAccount.currency
+    };
+
+    let dateFormatter = Intl.DateTimeFormat(currentAccount.locale);
+    // let numberFormatter = Intl.NumberFormat(currentAccount.locale, 
+    //     currencyOptions);
+
     displayArray.forEach((movementNumber, index) => 
     {  
+        
+        let outputTime = currentAccount.arrayMovementTimes[index];
+        if (outputTime === 1)
+        {
+            outputTime = "yesterday.";
+        }
+        else if (outputTime === 0)
+        {
+            outputTime = "today.";
+        }
+        else 
+        {
+            outputTime = 
+            `${dateFormatter.format(currentAccount.movementDateArray[index])}`;
+        }
         let movementTypeString = movementNumber > 0 ? "deposit" : "withdrawal";
         const htmlTemplateString = `
         <div class="movements__row">
             <div class="movements__type movements__type--${movementTypeString}"`
             + `>${index + 1} ${movementTypeString}</div>
-            <div class="movements__date">${currentAccount.arrayMovementTimes[index]} days ago.</div> 
-            <div class="movements__value">${movementNumber.toFixed(2)}€</div>
+            <div class="movements__date">${outputTime}</div> 
+            <div class="movements__value">${currentAccount.numFormatter.format(movementNumber.toFixed(2))}</div>
         </div>
         `;
         containerMovements.insertAdjacentHTML("afterbegin", htmlTemplateString);
@@ -197,26 +226,52 @@ const generateFields = function()
 {
     displayMovements(currentAccount.movements);
     generateAccountBalance(currentAccount);
-    labelBalance.textContent = `${currentAccount.balance.toFixed(2)} €`;
+    labelBalance.textContent = `${currentAccount.numFormatter.format(currentAccount.balance.toFixed(2))}`;
 
     calculateAccountSummaries(currentAccount);
-    labelSumIn.textContent = currentAccount.depositTotal.toFixed(2);
-    labelSumOut.textContent = 
-        Math.abs(currentAccount.withdrawalTotal.toFixed(2));
-    labelSumInterest.textContent = currentAccount.interestTotal.toFixed(2);
+    labelSumIn.textContent = 
+        currentAccount.numFormatter.format(currentAccount.depositTotal.toFixed(2));
+    labelSumOut.textContent = currentAccount.numFormatter.format(
+        Math.abs(currentAccount.withdrawalTotal.toFixed(2)));
+
+    labelSumInterest.textContent = currentAccount.numFormatter.format(
+        currentAccount.interestTotal.toFixed(2));
 
     inputLoginUsername.value = inputLoginPin.value = "";
     inputLoginUsername.blur();
     inputLoginPin.blur();
 
-    let dateCurrent = new Date();
-    let dayCurrent = dateCurrent.getDay();
-    let monthCurrent = dateCurrent.getMonth();
-    let yearCurrent = dateCurrent.getFullYear();
-    let monthdateCurrent = dateCurrent.getDate();
+    // let dateCurrent = new Date();
+    // let dayCurrent = dateCurrent.getDay();
+    // let monthCurrent = dateCurrent.getMonth();
+    // let yearCurrent = dateCurrent.getFullYear();
+    // let monthdateCurrent = `${dateCurrent.getDate()}`.padStart(2, "0");
 
-    labelDate.textContent = `${arrayDays[dayCurrent]} `
-     + `${arrayMonths[monthCurrent]} ${monthdateCurrent}, ${yearCurrent}`;
+    // labelDate.textContent = `${arrayDays[dayCurrent]} `
+    //  + `${arrayMonths[monthCurrent]} ${monthdateCurrent}, ${yearCurrent}`;
+
+    let dateCurrent = new Date();
+
+    // We can create an international formatter with the Intl module and then 
+    // use it to format our dates with the correct language-REGION code. 
+    // Examples: en-CA (Canada) en-US (United States), en-GB (Great Britain)
+    const optionsObj = 
+    {
+        "hour": "numeric",
+        "minute": "numeric", 
+        "day": "numeric", 
+        "month": "long", 
+        "year": "2-digit", 
+        "weekday": "short"
+    };
+
+    // We can receive our language code with navigator.language.
+    const locale = navigator.language;
+
+    let intlFormatter = 
+        new Intl.DateTimeFormat(currentAccount.locale, optionsObj);
+
+    labelDate.textContent = intlFormatter.format(dateCurrent);
 
     const generateSortEventFunction = function()
     {
@@ -239,6 +294,8 @@ const generateFields = function()
 
 const logoutCurrentUser = function()
 {
+    clearInterval(intervalTimer);
+    clearTimeout(timeoutLogout);
     currentAccount = null;
     containerApp.style["opacity"] = 0;
     containerMovements.innerHTML = "";
@@ -265,6 +322,7 @@ const signinUser = function(event)
         console.log("Logging in.");
         currentAccount = accountChecked;
         generateFields();
+        beginLogoutTimer();
     }
     else 
     {
@@ -279,24 +337,33 @@ accounts.forEach((account) => console.log(account));
 
 const transferFunds = function(transferAccountString, amountNumber)
 {
-    const findAccountByUsername = 
-        (account) => account.username === transferAccountString;
+    const funcImplTransfer = function()
+    {    
+        const findAccountByUsername = 
+            (account) => account.username === transferAccountString;
 
-    const transferAccount = accounts.find(findAccountByUsername);
-    console.log(transferAccount);
+        const transferAccount = accounts.find(findAccountByUsername);
+        console.log(transferAccount);
 
-    if (amountNumber > 0 && transferAccount)
+        if (amountNumber > 0 && transferAccount)
+        {
+            this.movements.push(0 - amountNumber);
+            this.movementDateArray.push(new Date());
+            transferAccount.movements.push(amountNumber);
+            transferAccount.movementDateArray.push(new Date());
+            generateFields();
+        }
+        else 
+        {
+            console.log("Error: Invalid transfer.");
+        }
+    };
+
+    setTimeout(function()
     {
-        this.movements.push(0 - amountNumber);
-        this.movementDateArray.push(new Date());
-        transferAccount.movements.push(amountNumber);
-        transferAccount.movementDateArray.push(new Date());
-        generateFields();
-    }
-    else 
-    {
-        console.log("Error: Invalid transfer.");
-    }
+        funcImplTransfer.call(currentAccount)
+    }, 5000);
+    
 };
 
 const beginTransferEvent = function(event)
@@ -363,9 +430,12 @@ btnClose.addEventListener("click", closeAccountEvent);
 function beginLoanEvent(event)
 {
     event.preventDefault();
-    const requestedLoanNumber = Math.floor(inputLoanAmount.value);
-    if (requestedLoanNumber && requestedLoanNumber > 0)
+    const numRequest = Math.floor(inputLoanAmount.value);
+
+    function funcImplLoan(requestedLoanNumber)
     {
+        if (requestedLoanNumber && requestedLoanNumber > 0)
+        {
         const anyDepositGreaterThanLoan = (movementNumber) => 
             movementNumber >= requestedLoanNumber / 10;
         
@@ -382,13 +452,15 @@ function beginLoanEvent(event)
         {
             console.log("Error: Insufficient funds.");
         }
+        }
+        else 
+        {
+            console.log("Error requesting loan.");
+        }
+        inputLoanAmount.value = "";
+        inputLoanAmount.blur();
     }
-    else 
-    {
-        console.log("Error requesting loan.");
-    }
-    inputLoanAmount.value = "";
-    inputLoanAmount.blur();
+    setTimeout(funcImplLoan, 3000, numRequest);
 }
 
 btnLoan.addEventListener("click", beginLoanEvent);
@@ -551,7 +623,7 @@ const colorOddMovementsFunc = function(event)
 
     movementsRowArray.forEach((movementRow, indexNum) => 
     {
-        console.log(movementRow);
+        // console.log(movementRow);
         if ((indexNum + 1) % 2 === 0)
         {
             movementRow.style["backgroundColor"] = "orangered";
@@ -591,22 +663,74 @@ function funcGenerateAddTimestampFunction()
     return function(dateValue, indexNum, arrayDates)
     {
         let timeMovement = dateValue.getTime();
-        let currentTime = Date.now();
-        let timeDifference = currentTime - timeMovement;
+        let currentDate = Date.now();
+        let timeDifference = currentDate - timeMovement;
         return Math.floor(timeDifference / 1000 / 60 / 60 / 24);
     }
 };
 
-console.log(funcGenerateAddTimestampFunction());
+// console.log(funcGenerateAddTimestampFunction());
 
 accounts.forEach((accountObj, indexNum) => 
 {
-    console.log(typeof accountObj.movementDateArray);
+    // console.log(typeof accountObj.movementDateArray);
     let arrayMovementTimeDifferences = accountObj.movementDateArray
         .map(funcGenerateAddTimestampFunction());
 
     accountObj.arrayMovementTimes = arrayMovementTimeDifferences;
-    console.log(accountObj);
+    // console.log(accountObj);
 });
 
+// GENERATE NUMBER FORMATTER FOR ACCOUNTS 
 
+accounts.forEach((accountObj) => 
+{
+    let formatNumOptions = 
+    {
+        "style": "currency", 
+        "currency": accountObj.currency
+    };
+    accountObj.numFormatter = 
+        Intl.NumberFormat(accountObj.locale, formatNumOptions);
+});
+
+// IMPLEMENT LOGOUT TIMER 
+
+function beginLogoutTimer()
+{
+    let timeStart = Date.now();
+    let timeFuture = timeStart + (60000 * 5);
+    console.log(new Date(timeStart));
+    console.log(new Date(timeFuture));
+    const timeFormatter = Intl.DateTimeFormat(currentAccount.locale);
+    let numCount = 0;
+    function funcUpdateTimer()
+    {
+        let timeCurrent = Date.now();
+        let timeRemaining = (timeFuture - timeCurrent) / 1000;
+
+        console.log("Time Remaining", timeRemaining / 1000);
+
+        let timeMinutes = Math.floor(timeRemaining / 60);
+        let timeSeconds = Math.floor(timeRemaining % 60);
+        console.log('Time Minutes', timeMinutes);
+        console.log("Time Seconds", timeSeconds);
+
+        labelTimer.textContent = `${String(timeMinutes).padStart(2, "0")}`
+        + `:${String(timeSeconds).padStart(2, "0")}`;
+    };
+
+
+    // 1. Begin Interval timer for updating clock every second. Format time as 
+    // MIN/SECONDS.
+        // 1. Find out how many minutes are in the remaining time (remainder)
+        // 2. Find out how many seconds are in the remainder. 
+    // 2. Begin timeout timer for logging out after five minutes and disabling 
+    // interval timer. 
+
+    intervalTimer = setInterval(funcUpdateTimer, 1000);
+    timeoutLogout = setTimeout((intervalTimer) => 
+    {
+        logoutCurrentUser();
+    }, numLogoutTime, intervalTimer);
+}

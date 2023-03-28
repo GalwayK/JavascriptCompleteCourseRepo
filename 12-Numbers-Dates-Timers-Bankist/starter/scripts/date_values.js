@@ -108,3 +108,26 @@ console.log(`I will graduate from Sheridan on ${arrayMonths[monthGraduation]} `
 + `Graduate, ${timeGraduation / 1000} seconds will have passed since the `
  + `Epoch. Dang it.`);
 
+// We can also perform operations on dates. If we subtract a date from another 
+// date, it will convert the dates into timestamps. This lets us do a number 
+// of useful operations, such as finding out the difference between two dates. 
+
+function funcFindDifferenceBetweenDates(dateOne, dateTwo) 
+{
+    return dateOne - dateTwo;
+}
+
+function funcConvertTimestampToDay(timestampValue)
+{
+    return timestampValue / 1000 / 60 / 60 / 24;
+}
+
+let dateOne = new Date(2020, 1, 1, 1, 1, 1);
+let dateTwo = new Date(2021, 1, 1, 1, 1, 1);
+let timeDifferenceMilliseconds = funcFindDifferenceBetweenDates(dateOne, dateTwo);
+timeDifferenceMilliseconds = Math.abs(timeDifferenceMilliseconds);
+let timeDifferenceDays = funcConvertTimestampToDay(timeDifferenceMilliseconds);
+console.log(timeDifferenceDays);
+
+// If we need more precise date operations, we should use a dedicated library 
+// such as moment.js.
