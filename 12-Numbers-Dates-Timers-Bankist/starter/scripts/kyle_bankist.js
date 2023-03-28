@@ -279,6 +279,7 @@ const generateFields = function()
         return function(event)
         {
             event.preventDefault();
+            resetTimer();
             displayMovements(currentAccount.movements, true, sortString);
             sortString = sortString === "ascend" ? "descend" : "ascend";
         }
@@ -309,6 +310,8 @@ const logoutCurrentUser = function()
 const signinUser = function(event)
 {
     event.preventDefault();
+    clearInterval(intervalTimer);
+    clearTimeout(timeoutLogout);
     const usernameString = inputLoginUsername.value;
     const passwordString = !isNaN(inputLoginPin.value) ? 
         + (inputLoginPin.value) : "";
@@ -369,6 +372,7 @@ const transferFunds = function(transferAccountString, amountNumber)
 const beginTransferEvent = function(event)
 {
     event.preventDefault();
+    resetTimer();
     const usernameString = inputTransferTo.value;
     const amountNumber = +(inputTransferAmount.value);
     
@@ -396,6 +400,7 @@ btnTransfer.addEventListener("click", beginTransferEvent)
 const closeAccountEvent = function(event)
 {
     event.preventDefault();
+    resetTimer();
 
     const inputUsernameString = inputCloseUsername.value;
     const inputPasswordString = inputClosePin.value;
@@ -430,6 +435,7 @@ btnClose.addEventListener("click", closeAccountEvent);
 function beginLoanEvent(event)
 {
     event.preventDefault();
+    resetTimer();
     const numRequest = Math.floor(inputLoanAmount.value);
 
     function funcImplLoan(requestedLoanNumber)
@@ -700,21 +706,14 @@ function beginLogoutTimer()
 {
     let timeStart = Date.now();
     let timeFuture = timeStart + (60000 * 5);
-    console.log(new Date(timeStart));
-    console.log(new Date(timeFuture));
-    const timeFormatter = Intl.DateTimeFormat(currentAccount.locale);
-    let numCount = 0;
+
     function funcUpdateTimer()
     {
         let timeCurrent = Date.now();
         let timeRemaining = (timeFuture - timeCurrent) / 1000;
 
-        console.log("Time Remaining", timeRemaining / 1000);
-
         let timeMinutes = Math.floor(timeRemaining / 60);
-        let timeSeconds = Math.floor(timeRemaining % 60);
-        console.log('Time Minutes', timeMinutes);
-        console.log("Time Seconds", timeSeconds);
+        let timeSeconds = Math.round(timeRemaining % 60);
 
         labelTimer.textContent = `${String(timeMinutes).padStart(2, "0")}`
         + `:${String(timeSeconds).padStart(2, "0")}`;
@@ -729,8 +728,20 @@ function beginLogoutTimer()
     // interval timer. 
 
     intervalTimer = setInterval(funcUpdateTimer, 1000);
-    timeoutLogout = setTimeout((intervalTimer) => 
+    timeoutLogout = setTimeout(() => 
     {
         logoutCurrentUser();
-    }, numLogoutTime, intervalTimer);
+    }, numLogoutTime);
+}
+
+// RESET TIMER 
+
+function resetTimer()
+{
+    console.log(intervalTimer);
+    console.log('Clearing timer...');
+
+    intervalTimer != undefined ? clearInterval(intervalTimer) : null;
+    timeoutLogout != undefined ? clearTimeout(timeoutLogout) : null;
+    beginLogoutTimer();
 }
