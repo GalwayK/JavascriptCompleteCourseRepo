@@ -139,8 +139,19 @@ const countriesContainer = document.querySelector('.countries');
 // const request = fetch(`${strAPI}name/canada`);
 // console.log(request);
 
-function getCountryData(strCountry, strAPI="https://restcountries.com/v2/")
+function getCountryData(strCountry, strAPI="https://restcountries.com/v2/", 
+    strError="Country Not Found")
 {
+    const funcErrorCheck = function(response)
+    {
+        console.log(response.ok);
+        if (!response.ok)
+        {
+            return Promise.reject(`${strError}: ${response.status}`)
+        }
+        return response
+    }
+
     console.log('Fetching country data.');
     function insertCountryHTML(objData, strClass="country")
     {
@@ -159,37 +170,60 @@ function getCountryData(strCountry, strAPI="https://restcountries.com/v2/")
 
     const printCountry = (data) =>
     {
-        // (data ? 
+        console.log(data);
+        (data ? 
         (function()
         {
             const [objCountry] = data;
             console.log(objCountry);
+
             insertCountryHTML(objCountry);
+
             const arrBorders = objCountry?.borders ?? undefined;
+
             if (arrBorders)
             {
                 arrBorders.forEach((strBorder) =>
                 {
-                    fetch(`${strAPI}alpha/${strBorder}`)
+                    funcGetCountryWithErrorCheck(`${strAPI}alpha/${strBorder}`)
                         .then(getResponse)
+                        .catch(printError)
                         .then(printNeighbour);
-                });
+                }); 
             }
-        })();
-        // () : undefined)
+        })()
+         : throwError("No data recovered!"));
     };
+
+    function throwError(strMessage)
+    {
+        console.log("Rejecting promise!");
+        return Promise.reject(strMessage);
+    }
 
     const printNeighbour = (data) =>
     {
         insertCountryHTML(data, "neighbour")
     };
 
-    const getResponse = (response) => response.json();
+    const getResponse = (response) => 
+    {
+        console.log(response);
+
+        return response.json();
+    }
 
     function printError(error)
     {
-        const strHTML = `<div style = 'border-radius: 50px; background-color: red; margin: 10vh; border: thick red solid; padding: 10vh;'>${error.message}</div>`;
+        console.log(error);
+        const strHTML = `<div style = 'border-radius: 50px; background-color: red; margin: 10vh; border: thick red solid; padding: 10vh;'>${error}</div>`;
         countriesContainer.insertAdjacentHTML("afterBegin", strHTML);
+    }
+
+    const funcGetCountryWithErrorCheck = function(strCall)
+    {
+        return fetch(strCall)
+            .then(funcErrorCheck)
     }
 
     function removeOpacity()
@@ -197,23 +231,99 @@ function getCountryData(strCountry, strAPI="https://restcountries.com/v2/")
         countriesContainer.style.opacity = 1;
     }
 
-    fetch(`${strAPI}name/${strCountry}`)
+    const promiseObj = 
+        funcGetCountryWithErrorCheck(`${strAPI}name/${strCountry}`)
             .then(getResponse)
             .then(printCountry)
             .catch(printError)
-            .finally(removeOpacity);;
-            
-}
+            .finally(removeOpacity);
+
+    console.log(promiseObj);
+};
 
 const funcCountryEvent = function(event)
 {
     event.preventDefault();
     countriesContainer.textContent = "";
-    // getCountryData("Germany");
-    getCountryData("dawdawd");
-}
+    // getCountryData("germany");
+    getCountryData("bdjawhbdawd");
+};
 
 btn.addEventListener("click", funcCountryEvent);
+
+// function funcExecutor(funcResolve, funcReject)
+// {
+//     console.log("Running lottery!");
+
+//     setTimeout(() => 
+//     {
+//         const numLottery = Math.round(Math.random());
+
+//         console.log(`Your lottery draw is: ${numLottery}`);
+
+//         if (numLottery === 1)
+//         {
+//             funcResolve("You win the lottery!");
+//         }
+//         else 
+//         {
+//             funcReject("You lose the lottery!");
+//         }
+//     }, 2000);
+// }
+
+// const proLottery = new Promise(funcExecutor);
+
+// proLottery.then((response) => console.log(response))
+//     .catch((response) => console.error(response));
+
+// console.log("Yep, that's an asynchronous function all right.");
+
+// Promisifying a Timeout function
+// const funcWait = function(numSeconds)
+// {
+//     console.log("Beginning timer!");
+
+//     return new Promise((funcResolve, funcReject) => 
+//     {
+//         setTimeout(funcResolve, numSeconds * 1000, 
+//             `${numSeconds} seconds have passed!`);
+//     });
+// };
+
+// const proTimeout = funcWait(3)
+//     .then(result => 
+//     {
+//         console.log(result)
+//         funcWait(1)
+//         .then((result) => console.log(result));
+//     });
+
+// TESTING THE EVENT LOOP 
+
+// console.log("Test Start");
+
+// setTimeout(() => console.log("0 second timer."));
+
+// Promise.resolve("Resolved Promise 1").then(res => console.log(res));
+
+// Promise.resolve("Resolved Promise 2").then(res => 
+// {
+//     for (let i = 0n; i < 99999999n; i++)
+//     {
+
+//     }
+//     console.log(res);
+// });
+
+// console.log("Test End");
+
+
+Promise.resolve("Woah look at this result!")
+    .then((result) => console.log(result));
+
+Promise.reject("Haha it got rejected!")
+    .catch(result => console.error(result));
 
 ///////////////////////////////////////
 
@@ -321,3 +431,77 @@ btn.addEventListener("click", funcCountryEvent);
 // connection. This means that our logic may continue to run even though we have 
 // a catch, since the promise will still technically not have failed. To catch 
 // this, we must implment potential logic checking, or manually throw errors.
+
+// HANDLING REJECTED PROMISES 
+// A common problem is that promises that return a 404 error still return a 
+// fulfilled promise instead of a rejected promise. This requires us to manually
+// throw exception and handle these errors. We can throw our own error with 
+// throw new Error(strMessage) after checking one of the response's fields. This
+// manually created error will propagate down until it lands in our catch method 
+// and is handled by the callback function we have defined for printing errors. 
+// Since any error that is thrown will reject the promise and trigger the catch 
+// function. It is also just generally bad practice to leave bad but unrejected 
+// promise in the code - you should always throw an error to force them to 
+// reject. At the same time however, we can easily end up with constant 
+// duplicate code if we have to manually throw errors every single time that 
+// they occur. We can do this with a wrapper function around our initial 
+// promise which will also call the .then() with an error checker function. 
+// This error check can check the status of our promise and throw an error if 
+// it is not valid. By doing so, we can eliminate the need to constantly write 
+// new errors ourself and just use a template function with a customizable 
+// message or content, which reduces code repetition. 
+
+// THE EVENT LOOP
+// When a function or operation is performed asynchronously, it is executed in 
+// the web APIs environment, instead of in the JavaScript runtime environment. 
+// The asynchronous activity will be run in the web API environment, and when it
+// is completed, it will put the callback into the callback queue - which is an 
+// ordered list of all of the callback functions in line to be executed. Because
+// it is a queue, any new callback added to the queue will be run last, after 
+// every other callback function already in the callback queue. This can mean
+// that there are delays if there are a number of other callback functions. A 
+// timer function that goes off after 5 seconds will be added to the callback 
+// queue after 5 seconds, but it may take longer for the callback queue to get 
+// around to running that callback function. 
+
+// The callback queue is also used by events in the DOM. All events added and 
+// activated in the DOM will be added to the event loop and may need to wait. 
+
+// The Event Loop is a process by which JavaScript runs functions from the 
+// callback queue. It periodially looks into the call stack, and if it is empty, 
+// will then look into the callback queue and take the first callback function 
+// from the callback queue and put it into the call stack to be executed. Each 
+// time the Event Loop does this, it is called a callback tick. This also proves
+// that JavaScript has no sense of time - all time related operations are 
+// perfromed in the environment while the Event Loop just gives functions from 
+// the call stack and callback queue to the JavaScript Engine. If any of these 
+// functions take a long time to process, it will still need to finish before 
+// any other functions can run. 
+
+// Promises work different than usual asynchronous operations. Promises do not 
+// go into the callback queue. Promises and their callback functions have their 
+// own Microtasks Queue. The Microtasks Queue has priority over the Callback 
+// Queue, which means the Event Loop will always check the Microtasks Queue 
+// before the Callback Queue. This also means that nothing from the Callback 
+// Queue can be run if there is anything in the Microtasks Queue. If a Microtask
+// keeps adding more Microtasks to the Microtask Queue, it can effectively block
+// the Callback Queue, even if the Callback Queue is full. JavaScript timers 
+// therefore cannot do highly accurate operations - they can be blocked. 
+
+
+// BUILDING PROMISES 
+// We can construct our own promises with the Promise constructor. The promise 
+// constructor takes an executor function as an argument. This function receives
+// two arguments, both of which are functions. The first of these functions is 
+// the resolve function, and the second is the reject function. Whatever value 
+// we pass into the resolve and reject function will be passed along in the 
+// promise chain. 
+
+// We rarely need to create our own promises from scratch, but the main reason 
+// we would do so is to transform predominantly callback based behaviour into 
+// promised based behaviour - known as promisifying. For example, we could take 
+// the old method of using APIs are create a promise for it, instead of using 
+// the fetch method - though the fetch method already handles this for us. 
+
+// If we need to, we can also instantly create a promise that is either resolved
+// or rejected. 

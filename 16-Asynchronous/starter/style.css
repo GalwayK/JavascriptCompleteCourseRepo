@@ -16,8 +16,19 @@ body {
   min-height: 100vh;
 
   display: flex;
+  gap: 10vh;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+
+form 
+{
+  display: flex;
+  flex-direction: column;
+  gap: 1vh;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .container {
