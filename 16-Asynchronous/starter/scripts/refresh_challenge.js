@@ -2,6 +2,7 @@
 
 const divImages = document.querySelector(".images");
 let currentImage = undefined;
+let arrImages = [];
 let numImage = 1;
 
 function funcCreateProImage(strPath)
@@ -32,6 +33,7 @@ function funcCreateProImage(strPath)
 function funcAppendImage(objImage)
 {
     currentImage = objImage;
+    arrImages.push(objImage);
     divImages.insertAdjacentElement("beforeEnd", objImage);
     return objImage;
 }
@@ -70,6 +72,15 @@ const proImage = funcCreateProImage("img/img-1.jpg")
     .then(funcHideImage)
     .then(funcCreateProImage)
     .then(funcAppendImage)
+    .then(funcPromiseWait)
+    .then(funcHideImage)
+    .finally(() => {
+        console.log("And now for the end.");
+        arrImages.forEach((divImage, numIndex, arrImages) =>
+        {
+            divImage.style.display = "block";
+        });
+    })
     .catch(funcPrintError);
 
 // It has been a few weeks since I have had the time to keep up with my 

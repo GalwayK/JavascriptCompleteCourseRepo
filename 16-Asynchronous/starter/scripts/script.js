@@ -1,6 +1,6 @@
 'use strict';
 
-const strAPI = "https://restcountries.com/v2/";
+const strAPI = "https://restcountries.com/v2/name/";
 const strAPICanada = `${strAPI}name/canada`
 
 const btn = document.querySelector('.btn-country');
