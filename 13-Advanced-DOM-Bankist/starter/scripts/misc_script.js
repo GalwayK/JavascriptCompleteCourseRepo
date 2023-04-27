@@ -83,7 +83,6 @@ Key events will trigger key event object.
 
 // const funcChangeElementColor = function(event)
 // {
-    
 //     this.style["background-color"] = funcMakeRandomColor();
 //     console.log(this);
 //     console.log(`Link Clicked! on ${event.currentTarget}`);
@@ -151,8 +150,8 @@ closestHeader.style.background = "var(--gradient-secondary)";
 // document.body.style.backgroundColor = "pink";
 
 // closest can be considered the opposite of querySelector 
-// Closest: Searches down the DOM tree through children (exclusive).
-// Query Selector: Search up through the DOM tree through parents (inclusive).
+// Closest: Searches down the DOM tree through children (inclusive).
+// Query Selector: Search up through the DOM tree through parents (exclusive).
 
 // Going Sideways
 
@@ -191,3 +190,24 @@ let funcChangeSiblingStyles = function(element)
 
 funcChangeSiblingStyles.apply(funcChangeSiblingStyles, [headerOne]);
 */
+
+// Event for DOM content loaded.
+document.addEventListener("DOMContentLoaded", (event) => 
+{
+    console.log(event);
+    console.log("DOM tree and HTML loaded!");
+});
+
+window.addEventListener("load", (event) => 
+{
+    console.log(event);
+    console.log("All page resources loaded!");
+});
+
+// Event for before user leaves page and prompt for closing page (obtrusive!)
+window.addEventListener("beforeunload", (event) =>
+{
+    console.log(event);
+    event.preventDefault();
+    event.returnValue = "";
+});

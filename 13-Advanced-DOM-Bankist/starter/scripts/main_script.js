@@ -210,7 +210,7 @@ console.log(linkStyle.getAttribute("href"));
 // portion of the attribute will be removed. So data-version-number will become 
 // dataset.versionNumber.
 
-console.log(eleLogo.dataset.versionNumber);
+// console.log(eleLogo.dataset.versionNumber);
 
 // The four main methods for classes are add, remove, toggle, and contains 
 // Add: Adds a class to an element. 
@@ -218,18 +218,18 @@ console.log(eleLogo.dataset.versionNumber);
 // Toggle: Adds or removes a class for an element. 
 // Contains: Returns true if element contains the class. 
 
-eleLogo.classList.add("test-class");
-eleLogo.classList.add("toggle-class");
-console.log(eleLogo.classList);
+// eleLogo.classList.add("test-class");
+// eleLogo.classList.add("toggle-class");
+// console.log(eleLogo.classList);
 
-eleLogo.classList.remove("test-class");
-console.log(eleLogo.classList);
-eleLogo.classList.toggle("toggle-class");
-console.log(eleLogo.classList);
-console.log(eleLogo.classList.contains("toggle-class"));
-eleLogo.classList.toggle("toggle-class");
-console.log(eleLogo.classList);
-console.log(eleLogo.classList.contains("toggle-class"));
+// eleLogo.classList.remove("test-class");
+// console.log(eleLogo.classList);
+// eleLogo.classList.toggle("toggle-class");
+// console.log(eleLogo.classList);
+// console.log(eleLogo.classList.contains("toggle-class"));
+// eleLogo.classList.toggle("toggle-class");
+// console.log(eleLogo.classList);
+// console.log(eleLogo.classList.contains("toggle-class"));
 
 // We can also add a class with classname, but this is generally messy.
 eleLogo.className += " wrong-jonas";
@@ -243,7 +243,7 @@ console.log(eleLogo.classList);
 // When we set the location of an anchor tag to a hash, clicking it will make 
 // the page jump to top. 
 
-// //
+///////////////////////////////////////
 // PART ONE: HOW THE DOM WORKS BEHIND THE SCENES
 
 // What is the DOM? The DOM is the interface between the JavaScript code and
@@ -287,6 +287,8 @@ console.log(eleLogo.classList);
 // We never manually create the more abstract object types. They just provide a 
 // blueprint for requiring its children nodes to have the correct properties. 
 
+
+///////////////////////////////////////
 // Event Propagation: Bubbling and Capturing 
 
 /*
@@ -328,7 +330,20 @@ listeners to parent elements to catch the event listeners of their children.
 This allows us to only apply a single event listener to the parent, instead of 
 applying many separate event listeners to the children, which saves processing.
 It also allows us to catch events on elements that did not exist on runtime, by
-catching these events in the parent of the element instead of on the element.
+catching these events in the parent of the element instead of on the
+*/
+
+/*
+An HTML page goes through numerous events over the lifecycle of the page. 
+
+As soon as the HTML and JavaScript have been loaded, the page will send a
+DOMContentLoaded event, which indicates that the DOM tree has been loaded. 
+
+When the page itself has loaded all external links and resources, such as styles 
+and images, the window will emit a load event.
+
+Finally, before the page is unloaded, it will trigger a beforeunload event. 
+The default of this event can be prevented to display a confirmation prompt.
 */
 
 // MISC 
