@@ -346,6 +346,36 @@ Finally, before the page is unloaded, it will trigger a beforeunload event.
 The default of this event can be prevented to display a confirmation prompt.
 */
 
+/*
+Loading JavaScript 
+
+There are two additional ways of loading JavaScript into a page: defer and async
+
+Defer: The HTML page will completely load first, and then the JavaScript will 
+execute. This is usually the best and safest way to load scripts and will result 
+in the DOMContentLoaded event firing quicker than usual, and guarantees that the
+scripts will have access to the complete DOM. 
+
+Async: The HTML page will load the page until it comes across the script. It 
+will load the script asynchronously with the HTML page, but will still pause 
+execution in order to execute the script. It usually results in faster loading
+but you must ensure that your scripts do not accidently try to access content 
+which has not yet loaded. Best when your have many independent scripts.
+
+Standard: The HTML page will load until it encounters a script, then load and 
+completely execute that script. It will then continue loading the HTML page. 
+This results in slower page loading and can cause the scripts to not have access
+to DOM elements if the script executes before they have finished loading.
+
+Typically on standard the script tag must be put at the bottom of the page to 
+ensure the DOM has loaded. With defer, the script tag can be put in the head.
+
+Defer and async are only supported by modern browsers. On older browsers, to 
+ensure that scripts executed in the head only run after the page has loadded, 
+the entire script can be put in a window.onload event.
+
+*/
+
 // MISC 
 
 // Document.querySelctorAll returns a Nodelist, which has some but not all of 
