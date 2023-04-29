@@ -310,13 +310,14 @@ function funcImplementStickyHeader()
   }
 
   // Construct new Intersection Observer object.
-  const headerObserver = new IntersectionObserver(funcObserveCallback, observerOptions);
+  const headerObserver = new IntersectionObserver(funcObserveCallback, 
+    observerOptions);
 
   headerObserver.observe(header);
 }
 funcImplementStickyHeader();
-// Revealing Elements on Scroll
 
+// Revealing Elements on Scroll
 function funcImplementSectionReveal()
 {
   function funcRevealSection(entries, observer)
@@ -354,7 +355,6 @@ function funcImplementImageLoading()
 {
   const funcLazyLoadImage = (entries, observer) =>
   {
-
     const [entry] = entries;
 
     if (!entry.isIntersecting) return null;
@@ -429,7 +429,8 @@ function funcImplementSlider()
 
   function funcHandleKeyEvent(event)
   {
-    event.key === "ArrowRight" ? funcSlideRight(event) : funcSlideLeft(event);
+    event.key === "ArrowRight" ? funcSlideRight(event) : 
+      event.key === "ArrowLeft" && funcSlideLeft(event);
   }
 
   function funcDotClicked(event)
