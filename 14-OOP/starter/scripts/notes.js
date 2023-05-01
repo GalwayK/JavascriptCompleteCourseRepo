@@ -114,5 +114,35 @@ the prototype to any other object we would like to.
 
 */
 
-// Inheritance 
+// Protected and Private Fields
+/*
+JavaScript does not support truly private or protected data members. 
 
+There are four main field modifiers for OOP:
+
+1. Public fields: Fields accessible by anything. 
+
+2. Private fields: Fields accessible only inside the class denoted with #. 
+
+3. Protected fields: Fields accessible inside the class denoted with _.
+
+4. Public methods: Methods accessible by anything.
+
+5. Private methods: Methods accessible only inside the class denoted with #.
+
+6. Protected methods: Methods accessible inside the class denoted with _.
+
+In addition, we can use static public, protected, and private fields. These are 
+only available on the class/constructor and not on the global space.
+
+Public fields and methods have no additional modifier. 
+
+Private fields and methods are denoted with #. 
+
+Protected fields and methods are denoted with _.
+
+Protected: We can denote a property with _ to indicate it is protected. We can 
+use a getter or setter to access these data members instead of directly.
+
+We can chain methods by just returning the object in the methods.
+*/
