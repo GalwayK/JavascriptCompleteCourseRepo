@@ -31,7 +31,7 @@ const StudentClass = function(strFullName, numBirthYear, numStudentID,
 };
 
 StudentClass.prototype = Object.create(Person.prototype);
-StudentClass.constructor = StudentClass;
+StudentClass.prototyoe.constructor = StudentClass;
 console.dir(StudentClass.prototype.constructor);
 
 StudentClass.prototype.getLastGrade = function()
