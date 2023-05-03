@@ -44,7 +44,7 @@ MaptyApplication.prototype.methRunApplication = function(map)
 {
     this.map = map;
     console.log(this.map);
-    this.map.on("click", this.methHandleMapClick.bind(this));
+    this.map.on("click", (mapEvent) => this.methHandleMapClick(mapEvent));
 };
 
 MaptyApplication.prototype.methHandleError = function(error)
@@ -54,86 +54,83 @@ MaptyApplication.prototype.methHandleError = function(error)
 
 MaptyApplication.prototype.methHandleMapClick = function(mapEvent)
 {
-    
-
-    this.methShowForm(mapEvent);
-};
-
-MaptyApplication.prototype.methHideForm = function()
-{
-    inputType.removeEventListener("change", this.methSwitchWorkout);
-    form.removeEventListener("submit", this.methSubmitForm);
-    form.classList.add("hidden");
-};
-
-MaptyApplication.prototype.methShowForm = function(mapEvent)
-{
-    form.classList.remove("hidden");
-    inputDistance.focus();
-    inputType.addEventListener("change", this.methSwitchWorkout);
-
-    form.addEventListener("submit", (formEvent) => 
-        this.methSubmitForm(formEvent, mapEvent));
-};
-
-MaptyApplication.prototype.methSwitchWorkout = function()
-{
-    inputCadence.parentElement.classList.toggle("form__row--hidden");
-    inputElevation.parentElement.classList.toggle("form__row--hidden");
-};
-
-MaptyApplication.prototype.methSubmitForm = function(formEvent, mapEvent)
-{
-    formEvent.preventDefault();
-
-    console.log(formEvent);
-    console.log(mapEvent);
-
-    const workout = this.methCreateWorkout(mapEvent);
-    this.methCreateMarker(workout, mapEvent);
-
-    inputCadence.value = inputDistance.value = inputDuration.value = 
-            inputElevation.value = "";
-
-    this.methHideForm();
-};
-
-MaptyApplication.prototype.methCreateWorkout = function(mapEvent)
-{
-    const numId = this.arrWorkouts.length;
-    const numDistance = inputDistance.value;
-    const numDuration = inputDuration.value;
-    const coords = mapEvent.latlng;
-    const date = new Date();
-
-    const workout = inputType.value === "running"
-        ? new WorkoutRun(numId, numDistance, numDuration, coords, date, 
-            inputCadence.value)
-        : new WorkoutCycle(numId, numDistance, numDuration, coords, date, 
-            inputElevation.value);
-    return workout;
-};
-
-MaptyApplication.prototype.methCreateMarker = function(workout, mapEvent)
-{
-    const markerOptions = 
+    const funcHideForm = () =>
     {
-        maxWidth: 250,
-        minWidth: 200, 
-        autoClose: false,
-        closeOnClick: false,
-        className: `${inputType.value}-popup`
+        inputType.removeEventListener("change", funcSwitchWorkout);
+        form.removeEventListener("submit", funcHandleFormSubmit);
+        form.classList.add("hidden");
     };
 
-    let strContent = `${workout.getStrWorkout()} on`
-        + ` ${workout.date.toUTCString()}`;
-    
-    console.log(mapEvent.latlng);
+    const funcShowForm = () =>
+    {
+        console.log("Who?");
+        form.classList.remove("hidden");
+        inputDistance.focus();
 
-    L.marker([mapEvent.latlng.lat, mapEvent.latlng.lng]).addTo(this.map)
-        .bindPopup(L.popup(markerOptions))
-        .setPopupContent(strContent)
-        .openPopup();
+        inputType.addEventListener("change", funcSwitchWorkout);
+        form.addEventListener("submit", funcHandleFormSubmit);
+    };
+
+    const funcSwitchWorkout = () =>
+    {
+        inputCadence.parentElement.classList.toggle("form__row--hidden");
+        inputElevation.parentElement.classList.toggle("form__row--hidden");
+    };
+
+    const funcHandleFormSubmit = (formEvent) => 
+    {
+        formEvent.preventDefault();
+
+        const workout = funcCreateWorkout(mapEvent);
+        funcCreateMarker(workout, mapEvent);
+
+        inputCadence.value = inputDistance.value = inputDuration.value = 
+                inputElevation.value = "";
+
+        funcHideForm();
+    };
+
+    const funcCreateWorkout = () =>
+    {
+        const numId = this.arrWorkouts.length;
+        const numDistance = inputDistance.value;
+        const numDuration = inputDuration.value;
+        const coords = mapEvent.latlng;
+        const date = new Date();
+
+        const workout = inputType.value === "running"
+            ? new WorkoutRun(numId, numDistance, numDuration, coords, date, 
+                inputCadence.value)
+            : new WorkoutCycle(numId, numDistance, numDuration, coords, date, 
+                inputElevation.value);
+
+        this.arrWorkouts.push(workout);
+        return workout;
+    };
+
+    const funcCreateMarker = (workout) =>
+    {
+        const markerOptions = 
+        {
+            maxWidth: 250,
+            minWidth: 200, 
+            autoClose: false,
+            closeOnClick: false,
+            className: `${inputType.value}-popup`
+        };
+
+        let strContent = `${workout.getStrWorkout()} on`
+            + ` ${workout.date.toUTCString()}`;
+        
+        console.log(mapEvent.latlng);
+
+        L.marker([mapEvent.latlng.lat, mapEvent.latlng.lng]).addTo(this.map)
+            .bindPopup(L.popup(markerOptions))
+            .setPopupContent(strContent)
+            .openPopup();
+    };
+
+    funcShowForm();
 };
 
 // Application run.
