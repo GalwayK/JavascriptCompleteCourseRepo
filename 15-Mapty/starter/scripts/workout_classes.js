@@ -89,5 +89,4 @@ WorkoutCycle.prototype.getStrWorkout = function()
     return "Cycling";
 };
 
-// const workoutCycle = new WorkoutCycle(2, 10, 10, 10, 10, 10, 10);
-// console.log(workoutCycle.toString());
+const workoutCycle = new WorkoutCycle(2, 10, 10, 10, 10, 10, 10);

@@ -15,10 +15,10 @@ class MaptyClass
     // Private fields.
     #arrWorkouts = [];
     #map;
+    #mapZoom = 13;
 
     constructor()
     {
-        console.log(this);
         const proMap = new Promise(this.#funcCreateMap);
 
         // Once map has loaded, add event listeners to map to handle clicks.
@@ -28,6 +28,9 @@ class MaptyClass
                 this.#map = map;
                 console.log(this.#map);
                 this.#funcAddMapClickEvent();
+                this.#funcAddWorkoutClickEvent();
+                this.#arrWorkouts.push(...this.#funcLoadWorkouts());
+                this.#arrWorkouts.forEach(this.#funcRenderWorkout)
             })
             .catch((error) =>
             {
@@ -95,7 +98,7 @@ class MaptyClass
 
         const funcCreateWorkout = (mapEvent) =>
         {
-            const numId = this.arrWorkouts.length;
+            const numId = this.#arrWorkouts.length;
             const numDistance = inputDistance.value;
             const numDuration = inputDuration.value;
             const coords = mapEvent.latlng;
@@ -117,6 +120,8 @@ class MaptyClass
             const workout = this.#arrWorkouts.slice(-1)[0];
 
             funcCreateMarker(workout, mapEvent);
+
+            this.#funcRenderWorkout(workout);
     
             inputCadence.value = inputDistance.value = inputDuration.value = 
                     inputElevation.value = "";
@@ -158,8 +163,127 @@ class MaptyClass
             : new WorkoutCycle(numId, numDistance, numDuration, coords, date, 
                 numExtra);
 
-        this.arrWorkouts.push(workout);
+        this.#arrWorkouts.push(workout);
+        this.#funcSaveWorkouts();
     }
+
+    #funcRenderWorkout(workout)
+    {
+        if (!workout instanceof Workout) return null;
+
+        let strTemplate;
+
+        if (workout instanceof WorkoutRun)
+        {
+            strTemplate = `<li class="workout workout--running" data-id="1234567890">
+            <h2 class="workout__title">Running on ${months[workout.date.getMonth()]} ${workout.date.getDate()}</h2>
+            <div class="workout__details">
+              <span class="workout__icon">🏃‍♂️</span>
+              <span class="workout__value">${workout.numDistance}</span>
+              <span class="workout__unit">km</span>
+            </div>
+            <div class="workout__details">
+              <span class="workout__icon">⏱</span>
+              <span class="workout__value">${workout.numDuration}</span>
+              <span class="workout__unit">min</span>
+            </div>
+            <div class="workout__details">
+              <span class="workout__icon">⚡️</span>
+              <span class="workout__value">${workout.numPace}</span>
+              <span class="workout__unit">min/km</span>
+            </div>
+            <div class="workout__details">
+              <span class="workout__icon">🦶🏼</span>
+              <span class="workout__value">${workout.numCadence}</span>
+              <span class="workout__unit">spm</span>
+            </div> 
+          </li>`;
+        }
+        else if (workout instanceof WorkoutCycle)
+        {
+            strTemplate = `<li class="workout workout--cycling" data-id="1234567891">
+            <h2 class="workout__title">Cycling on ${months[workout.date.getMonth()]} ${workout.date.getDate()}</h2>
+            <div class="workout__details">
+              <span class="workout__icon">🚴‍♀️</span>
+              <span class="workout__value">${workout.numDistance}</span>
+              <span class="workout__unit">km</span>
+            </div>
+            <div class="workout__details">
+              <span class="workout__icon">⏱</span>
+              <span class="workout__value">${workout.numDuration}</span>
+              <span class="workout__unit">min</span>
+            </div>
+            <div class="workout__details">
+              <span class="workout__icon">⚡️</span>
+              <span class="workout__value">${workout.numSpeed}</span>
+              <span class="workout__unit">km/h</span>
+            </div>
+            <div class="workout__details">
+              <span class="workout__icon">⛰</span>
+              <span class="workout__value">${workout.numElevation}</span>
+              <span class="workout__unit">m</span>
+            </div>
+          </li>`;
+        }
+
+        containerWorkouts.insertAdjacentHTML("beforeEnd", strTemplate);
+    }
+
+    #funcAddWorkoutClickEvent()
+    {
+        containerWorkouts.addEventListener("click", 
+            this.#funcHandleWorkoutClick.bind(this));
+    }
+
+    #funcHandleWorkoutClick(clickEvent)
+    {
+        if (!clickEvent.target.closest(".workout")) return null 
+
+        const numWorkoutIndex = [...containerWorkouts.querySelectorAll(".workout")]
+            .findIndex((divWorkout) => 
+            {
+                return divWorkout === clickEvent.target.closest(".workout")
+            });
+        console.log(this.#arrWorkouts[numWorkoutIndex]);
+        this.#funcScrollToCoords(this.#arrWorkouts[numWorkoutIndex].coords);
+    }
+
+    #funcScrollToCoords(coords)
+    {
+        const scrollOptions = 
+        {
+            animate: true, 
+            pan: 
+            {
+                duration: 1
+            }
+        };
+
+        this.#map.setView(coords, this.#mapZoom, scrollOptions);
+    }
+
+    #funcSaveWorkouts()
+    {
+        localStorage.setItem("workouts", JSON.stringify(this.#arrWorkouts));
+    }
+
+    #funcLoadWorkouts()
+    {
+        let arrWorkouts = JSON.parse(localStorage.getItem("workouts"));
+        
+        arrWorkouts.forEach((workout) => 
+        {
+            console.log(workout.date);
+            workout.date = new Date(workout.date);
+
+            workout.numElevation 
+                ? workout.__proto__ = WorkoutCycle.prototype 
+                : workout.__proto__ = WorkoutRun.prototype;
+        }, []);
+
+        return arrWorkouts;
+    }
+    
 }
 
 const mapty = new MaptyClass();
